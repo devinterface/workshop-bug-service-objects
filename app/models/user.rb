@@ -16,22 +16,43 @@ require 'bcrypt'
 
 class User < ApplicationRecord
   #FIELDS
-  attr_accessor :password
+  attr_accessor :password, :facebook_token, :registration_type
   #RELATIONS
   has_many :authorizations
   #VALIDATIONS
   validates :email, presence: true
-  validates :password, presence: true, on: :create
+  validates :password, presence: true, if: :email_registration? 
+  validates :facebook_token, presence: true, if: :facebook_registration?
 
   #TRIGGERS
-  before_create :generate_hash
-  before_create :generate_activation_token
-  after_create :create_jwt_authorization
-  after_create :send_activation_email
+
+  def handle_email_registration
+    ActiveRecord::Base.transaction do
+      generate_password_hash
+      generate_activation_token
+      create_jwt_authorization
+      send_activation_email
+    end
+  end
+
+  def handle_facebook_registration
+    ActiveRecord::Base.transaction do
+      create_jwt_authorization
+      create_facebook_authorization
+    end
+  end
 
   private
 
-  def generate_hash
+  def email_registration?
+    registration_type == 'email'
+  end
+
+  def facebook_registration?
+    registration_type == 'facebook'
+  end
+
+  def generate_password_hash
     self.hashed_password = BCrypt::Password.create(password)
   end
 
@@ -41,6 +62,10 @@ class User < ApplicationRecord
 
   def create_jwt_authorization
     self.authorizations.create(provider: 'jwt', key: SecureRandom.hex)
+  end
+
+  def create_facebook_authorization
+    self.authorizations.create(provider: 'facebook', key: facebook_token)
   end
 
   def send_activation_email
