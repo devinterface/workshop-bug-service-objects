@@ -1,21 +1,21 @@
 class RegistrationsController < ApplicationController
 
   def create
-    @user = User.new(email_registration_params)
-    @user.registration_type = 'email'
-    @user.handle_email_registration
-    # OK
-  rescue
-    # KO
+    outcome = ::Users::EmailRegistration.call(email_registration_params[:user][:email], email_registration_params[:user][:password])
+    if outcome.success?
+      # OK
+    else
+      # KO
+    end
   end
 
   def facebook_create
-    @user = User.new(facebook_registration_params)
-    @user.registration_type = 'facebook'
-    @user.handle_facebook_registration
-    # OK
-  rescue
-    # KO
+    outcome = ::Users::FacebookRegistration.call(facebook_registration_params[:user][:email], facebook_registration_params[:user][:password])
+    if outcome.success?
+      # OK
+    else
+      # KO
+    end
   end
 
   private
