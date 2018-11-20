@@ -10,7 +10,7 @@ class RegistrationsController < ApplicationController
   end
 
   def facebook_create
-    outcome = ::Users::FacebookRegistration.call(facebook_registration_params[:user][:email], facebook_registration_params[:user][:password])
+    outcome = ::Users::FacebookRegistration.call(facebook_registration_params[:user][:email], facebook_registration_params[:user][:facebook_token])
     if outcome.success?
       # OK
     else
