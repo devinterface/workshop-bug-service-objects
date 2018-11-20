@@ -30,6 +30,7 @@ class User < ApplicationRecord
     ActiveRecord::Base.transaction do
       generate_password_hash
       generate_activation_token
+      save
       create_jwt_authorization
       send_activation_email
     end
@@ -37,6 +38,7 @@ class User < ApplicationRecord
 
   def handle_facebook_registration
     ActiveRecord::Base.transaction do
+      save
       create_jwt_authorization
       create_facebook_authorization
     end
